@@ -3,12 +3,21 @@
 #include <iostream>
 #include <sstream>
 
-int main(int argc, char** argv)   /* int main--- main body der code enthaelt der ausgefuehrt wird,   
-    (**parameter**)--int argc -anzahl der parameter die uebergeben werden ????????????
-parameter definitionen	int= Zahl -2mio bis +2mio
-			char= einstelliger character	*roh string im im ram	**arrey von arrey 	| arrey zusammenfassung von parametern im arbeitsspeicher
-			
+/*
+int= Zahl (32bit: -2mio bis +2mio, 64bit: -9223372036854775808 bis +9223372036854775808)
+char= einstelliger character (zeichen)
+char*= array von char (rohstring im ram)
+char**= array von array von char
+array ist zusammenfassung von objekten vom gleichen typ im arbeitsspeicher
+*/
 
+int main(int argc, char** argv)
+/*
+int	---	rückgabetyp (in diesem fall für fehlermeldungen)
+main	---	funktionsname (in diesem fall, die funktion, die den code enthält, der als erstes ausgefuehrt wird wenn das prog gestartet wird)
+()	---	parameterliste für die funktion (in diesem fall:
+			int argc	---	anzahl der parameter (programmname + parameter) die uebergeben werden
+			char** argv	---	die parameter
 	*/
 {
 	std::string erster = argv[1];   /* std::string erster-- definition eines strings mit namen erster, 
