@@ -3,12 +3,14 @@
 #include <iostream>
 #include <sstream>
 
-int main(int argc, char** argv)
+int main(int argc, char** argv)   // int main--- main body der code enthaelt der ausgefuehrt wird,       (**parameter**)-- ????????????
 {
-	std::string erster = argv[1];
-	if(erster == "hallo") {
-		std::cout << "tschuss" << std::endl;
-		return 1;
+	std::string erster = argv[1];   /* std::string erster-- definition eines strings mit namen erster, 
+					als argv[1] -- 'argv' paramter der beim programmstart uebergeben wird, [zahl] -- paramternummer 0=programmname 1=erster parameter... 
+					zur Sicherheit immer alles in strings konvertieren */
+	if(erster == "hallo") {		// if (abfrage) {code der ausgefuehrt wird wenn abfrage zutrifft }
+		std::cout << "tschuss" << std::endl;	// std:cout-- 'Funktion zur Ausgabe an Konsole'   << "text" <<  std::endl; --'Abschliesen der Funktion zur Ausgabe
+		return 1;				// return ZAHL;		programm beenden mit ZAHL: 0=
 	}
 	std::string zweiter = argv[2];
 
