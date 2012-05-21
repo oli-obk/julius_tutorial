@@ -34,17 +34,16 @@ std::string erster = argv[1];   /* std::string erster-- definition eines strings
 
 	std::string zweiter = argv[2];
 	
+	std::string auswahl = erster;
 	if(erster == "datei1") {			//wenn erster paramter datei1 lautet
-		std::string line;
 		std::ifstream einlesedatei ("datei1");		// datei oeffneN
 		if (einlesedatei.is_open())
-			{
-				std::getline (einlesedatei,line);
-				std::string datei1wert = "line";
-				}
-				}
+		{
+			std::getline (einlesedatei, auswahl);
+		}
+	}
 			
-	std::stringstream ss1(erster);
+	std::stringstream ss1(auswahl);
 	int int1;
 
 	if(ss1 >> int1)
@@ -68,6 +67,7 @@ std::string erster = argv[1];   /* std::string erster-- definition eines strings
 	std::cout << int1 << " + " << int2 << " = " << ergebnis << std::endl;
 
 	int zahl;
+	std::cout << "Bitte geb eine zahl ein: " << std::flush;
 	std::cin >> zahl;
 	std::cout << "Zahl: " << zahl << std::endl;
 
