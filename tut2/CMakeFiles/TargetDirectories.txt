@@ -1,0 +1,1 @@
+/home/julius/julius_tutorial/tut2/CMakeFiles/Example.dir
