@@ -12,6 +12,13 @@ char*= array von char (rohstring im ram)
 char**= array von array von char
 array ist zusammenfassung von objekten vom gleichen typ im arbeitsspeicher
 */
+int datenbankabfrage(){
+}
+
+
+
+
+
 
 int main(int argc, char** argv)
 /*
@@ -24,25 +31,34 @@ main	---	funktionsname (in diesem fall, die funktion, die den code enthält, der
 {
 
 
-std::string erster = argv[1];   /* std::string erster-- definition eines strings mit namen erster, 
+std::string datenbankname = argv[1];   /* std::string erster-- definition eines strings mit namen erster, 
 					als argv[1] -- 'argv' paramter der beim programmstart uebergeben wird, [zahl] -- paramternummer 0=programmname 1=erster parameter... 
 					zur Sicherheit immer alles in strings konvertieren */
-	if(erster == "hallo") {		// if (abfrage) {code der ausgefuehrt wird wenn abfrage zutrifft }
-		std::cout << "tschuss" << std::endl;	// std:cout-- 'Funktion zur Ausgabe an Konsole'   << "text" <<  std::endl; --'Abschliesen der Funktion zur Ausgabe
-		return 1;				// return ZAHL;		programm beenden mit ZAHL: 0=
-	}
-
-	std::string zweiter = argv[2];
+std::string durchlaufmodus = argv[2];
 	
-	std::string auswahl = erster;
-	if(erster == "datei1") {			//wenn erster paramter datei1 lautet
-		std::ifstream einlesedatei ("datei1");		// datei oeffneN
-		if (einlesedatei.is_open())
-		{
-			std::getline (einlesedatei, auswahl);
+	if(!(durchlaufmodus == "random" && "bydate" && "straight")) {			//wenn erster paramter datei1 lautet
+			std::cout << "kein zulaessiger modus, ZULAESSIGEMODI: random/bydate/straight" << std::endl;
+			return -1;
 		}
 	}
-			
+
+
+	if(durchlaufmodus == "random") {
+	}
+
+	if(durchlaufmodus == "bydate") {
+	}
+
+	if(durchlaufmodus == "straight") {
+	}
+
+
+
+
+
+
+
+
 	std::stringstream ss1(auswahl);
 	int int1;
 
