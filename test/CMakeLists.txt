@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8)
+ADD_EXECUTABLE(Example main.cpp fun.cpp)
+#LINK_DIRECTORIES(${POLYSOUBR_LIBRARY_DIRS})
+#TARGET_LINK_LIBRARIES(Example)
+INCLUDE_DIRECTORIES()
+ADD_DEFINITIONS(-g -Wall -pedantic)

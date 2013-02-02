@@ -1,0 +1,1 @@
+avrdude -c buspirate -P /dev/ttyUSB0 -p m8515 -e -U lfuse:w:0xc4:m -U hfuse:w:0xd9:m -U flash:w:main.hex 
