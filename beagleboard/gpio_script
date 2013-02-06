@@ -1,0 +1,62 @@
+#!/bin/sh
+
+	set +x
+	NO_ARGS=0
+	E_OPTERROR=85
+	RESETPIN=150
+	POWERLEDPIN=150
+	POWERSWPIN=150
+
+	if [ $# -eq "$NO_ARGS" ]    # Script invoked with no command-line args?
+	then
+	echo "Usage: `basename $0` options (-r -h)"
+	exit $E_OPTERROR          # Exit and explain usage.
+        # Usage: scriptname -options
+	# Note: dash (-) necessary
+	fi  
+
+	cd /sys/class/gpio
+
+	while getopts "r:h" options; do
+	case $options in
+	r ) 	if [ $OPTARG != reset -o $OPTARG != powerled -o $OPTARG != powersw1 -o $OPTARG != powersw8 ] ; then
+		echo "-r reset	-r powerled -r powersw1 -r powersw8"
+		else
+			if [ $OPTARG = reset ]; then
+			echo $RESETPIN > export
+			echo "high" > "gpio"$RESETPIN/direction
+			sleep 1
+			echo "low" > "gpio"$RESETPIN/direction
+			fi
+
+			if [ $OPTARG = powerled ]; then
+			echo $POWERLEDPIN > export
+			echo "in" > "gpio"$POWERLEDPIN/direction
+			sleep 1
+			echo '"POWERLED "$(cat gpio${POWERLEDPIN}/value'
+			fi
+
+			if [ $OPTARG = powersw1]; then
+			echo $POWERSWPIN > export
+			echo "high" > gpio${POWERSWPIN}/direction
+			sleep 1
+			echo "low" > gpio${POWERSWPIN}/direction
+			fi
+
+			if [ $OPTARG = powersw8]; then
+			echo $POWERSWPIN > export
+			echo "high" > gpio${POWERSWPIN}/direction 
+			sleep 8 
+			echo "low" > gpio${POWERSWPIN}/direction
+			fi
+		fi
+		;;
+	h )	echo "-r reset  -r powerled -r powersw1 -r powersw8"
+		exit 0
+		;;
+
+	esac
+	done
+
+
+exit 0
