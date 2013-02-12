@@ -1,0 +1,22 @@
+# depslib dependency file v1.0
+1352552370 source:/home/julius/julius_tutorial/avr/uart.c
+	<avr/io.h>
+	<avr/interrupt.h>
+	<avr/pgmspace.h>
+	"uart.h"
+
+1353354746 /home/julius/julius_tutorial/avr/uart.h
+
+1333699189 source:/home/julius/julius_tutorial/dtmf.c
+	<avr/pgmspace.h>
+	<avr/eeprom.h>
+
+1360679904 source:/home/julius/julius_tutorial/klingelmod/klingelmod2/main.c
+	<avr/io.h>
+	<string.h>
+	<stdlib.h>
+	<avr/interrupt.h>
+	<avr/pgmspace.h>
+	"uart.h"
+	<inttypes.h>
+
