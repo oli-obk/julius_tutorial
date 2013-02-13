@@ -26,13 +26,16 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-Wall" />
 			<Add option="-mmcu=atmega32" />
+			<Add option="-Wmain" />
+			<Add option="-W" />
+			<Add option="-Wall" />
 			<Add option="-DF_CPU=16000000UL" />
 		</Compiler>
 		<Linker>
 			<Add option="-mmcu=atmega32" />
 			<Add option="-Wl,-Map=$(TARGET_OUTPUT_FILE).map,--cref" />
+			<Add library="/usr/avr/lib/avr5/libc.a" />
 		</Linker>
 		<ExtraCommands>
 			<Add after="avr-size $(TARGET_OUTPUT_FILE)" />
@@ -40,11 +43,20 @@
 			<Add after="avr-objcopy --no-change-warnings -j .eeprom --change-section-lma .eeprom=0 -O ihex $(TARGET_OUTPUT_FILE) $(TARGET_OUTPUT_FILE).eep.hex" />
 			<Add after="avr-objdump -h -S $(TARGET_OUTPUT_FILE) &gt; $(TARGET_OUTPUT_FILE).lss" />
 		</ExtraCommands>
+		<Unit filename="../../avr/uart.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../avr/uart.h" />
+		<Unit filename="../../dtmf.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions>
-			<code_completion />
+			<code_completion>
+				<search_path add="/usr/avr/include" />
+			</code_completion>
 			<debugger />
 		</Extensions>
 	</Project>

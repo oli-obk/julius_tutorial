@@ -8,6 +8,7 @@
 #include <avr/pgmspace.h>
 #include "uart.h"
 #include <inttypes.h>
+#include <util/delay.h>
 #define GETREG(REG_NAME, REG_BIT) (REG_NAME & (1 << REG_BIT))
 #define CLRREG(REG_NAME, REG_BIT) (REG_NAME &= ~(1 << REG_BIT))
 #define SETREG(REG_NAME, REG_BIT) (REG_NAME |= (1 << REG_BIT))
@@ -26,13 +27,6 @@ struct UART_KOMMANDOS
                 int (*comandFunction)(void);
             };
 
-struct UART_KOMMANDOS FunctionTable[10] =
-             {
-                 {"dial", &dial},
-                 {"opendoor", &opendoor},
-                 {"lock", &lock},
-                 {"unlock", &unlock}
-                };
 char dialchars[] = {
         '1',
         '2',
@@ -52,44 +46,6 @@ char dialchars[] = {
 char uart_input_buffer[25] = {};
 char uart_input_breaker[] = {'\n', '\r'};
 int uart_input_counter = 0;
-
-
-//eingabe auf breaker checken, wenn nicht zeichen in buffer schreiben
-void kommando_check(char input, char* buffer, char* breaker, int counter)
-            {
-                if ( input != breaker[0] && c != breaker[1] && counter < 25 )
-                    {
-                    input = buffer[counter];
-                    ++counter;
-                    }
-
-                //bei breaker, buffer mit kommando array vergleichen
-
-                else {
-                    int uibc = 0;
-                    if ( input == breaker[uibc] )
-                    {
-                        ++uibc;
-                        if ( uibc == 2 )
-                        {
-                            uibc = 0;
-                            counter = 0;
-                            int i;
-                            for ( i = 0; i < (sizeof(FunctionTable) / sizeof(*FunctionTable)); i++)
-                            {
-                                if(strcmp(FunctionTable[i].comandname,uart_input_buffer)==0)
-                                {
-                                    FunctionTable[i].comandFunction();
-                                    break;
-                                }
-
-
-
-                            }
-                        }
-                    }
-                }
-            };
 
 char getinputfromuart()
     {
@@ -132,26 +88,26 @@ char getinputfromuart()
             return c;
     }
 
+
+
+
+
 void getnumbers(char* arr, int num)
              {
-                char number = getinputfromuart();
                 int gnc;
-                uart_input_counter = 0;
-                for ( gnc = 0; gnc < (sizeof(dialchars) / sizeof(*dialchars)); i++)
+                for ( gnc = 0; gnc < (sizeof(dialchars) / sizeof(*dialchars)); gnc++)
                     {
-                        if( number == dialchars[gnc] && uart_input_counter != 24 )
-                            {
-                                uart_input_buffer[uart_input_counter] = number;
-                                uart_input_counter++;
-                            }
-                        else if ( number == uart_input_breaker[0] || number == uart_input_breaker[1] )
-                            {
-                                break;
-                            }
-                        else 
-                            {
-                                break;
-                            }
+                    char number = getinputfromuart();
+                       // stop if \n or \r
+                    if ( number == uart_input_breaker[0] || number == uart_input_breaker[1] ) break;
+                    // stop if buffer full
+                    if ( num == 0) break;
+                    // process numbers or #*
+                    if ( number >= '0' && number <= '9'  || number == '#' || number == '*') {
+                        *arr = number;
+                        arr++;
+                        num--;
+                        }
                     }
              };
 
@@ -172,28 +128,77 @@ int dial(void)
                     dtmf_out(telefonnummer);
                     }
             };
-            
-            
-int opendoor(void)
+
+void delay_s(unsigned int seconds)
+            {
+                for(seconds >= 0; seconds--; ) delay_ms(1);
+            }
+
+void opendoor(void)
+            {
+            SETREG(PORTA, PA0);
+            SETREG(DDRA, PA0);
+
+            };
+
+
+void lock(void)
             {
                 void;
             };
 
 
-int lock(void)
+void unlock(void)
             {
                 void;
             };
 
 
-int unlock(void)
+struct UART_KOMMANDOS FunctionTable[10] =
+             {
+                 {"dial", &dial},
+                 {"opendoor", &opendoor},
+                 {"lock", &lock},
+                 {"unlock", &unlock}
+                };
+
+
+//eingabe auf breaker checken, wenn nicht zeichen in buffer schreiben
+void kommando_check(char input, char* buffer, char* breaker, int counter)
             {
-                void;
+                if ( input != breaker[0] && input != breaker[1] && counter < 25 )
+                    {
+                    input = buffer[counter];
+                    ++counter;
+                    }
+
+                //bei breaker, buffer mit kommando array vergleichen
+
+                else {
+                    int uibc = 0;
+                    if ( input == breaker[uibc] )
+                    {
+                        ++uibc;
+                        if ( uibc == 2 )
+                        {
+                            uibc = 0;
+                            counter = 0;
+                            int i;
+                            for ( i = 0; i < (sizeof(FunctionTable) / sizeof(*FunctionTable)); i++)
+                            {
+                                if(strcmp(FunctionTable[i].comandname,uart_input_buffer)==0)
+                                {
+                                    FunctionTable[i].comandFunction();
+                                    break;
+                                }
+
+
+
+                            }
+                        }
+                    }
+                }
             };
-
-
-
-
 
 int main(void)
 {
@@ -227,7 +232,7 @@ int main(void)
 
     while(1)
     {
-      
+
             /* check if transcived is an command
              */
 
@@ -235,8 +240,8 @@ int main(void)
 
                 //uart eingabe checken
 
-                kommando_check(uart_input_buffer, uart_input_buffer, uart_input_counter);
-                
+                kommando_check(getinputfromuart, uart_input_buffer, uart_input_buffer, uart_input_counter);
+
 
 
 
@@ -245,9 +250,7 @@ int main(void)
 
 
 
-            while(1)
-                ;
-
+         
             return 0;
         }
 }
