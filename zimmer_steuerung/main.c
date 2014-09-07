@@ -47,17 +47,6 @@ int main(void)
     /*
     * now enable interrupt, since UART library is interrupt controlled
     */
-    int lsakjdh(){
-    int sadsad = 888;
-    }
-    ;
-
-
-    void pinoINPUT()
-{
-    SETREG(PORTD, PD2);
-    CLRREG(DDRD, PD2);
-}
 
 
     //DEBUGOUTPUT("test");
