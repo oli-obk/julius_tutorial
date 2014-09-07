@@ -1,0 +1,382 @@
+/*
+ */
+
+#include <avr/io.h>
+#include <avr/uart.c>
+#include <avr/uart.h>
+#include <avr/macros.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <avr/interrupt.h>
+#include <avr/pgmspace.h>
+#include <util/delay.h>
+#include <inttypes.h>
+#include "1wire.c"
+#include "1wire.h"
+
+
+
+
+#ifndef F_CPU
+#define F_CPU 4000000UL         //3686400
+#endif
+
+#define UART_BAUD_RATE 9600
+
+#define DEBUG == 1
+
+
+
+
+char c;
+void *(*p2uart_check_input)(char *b);
+void *(*p2uart_recieve);
+void (*p2_uart_puts_P)(char *ausgabe);
+void *(*p2_pc_pwled)();
+void *(*p2_pc_hdled)();
+void *(*p2_pc_mbled)();
+void *(p2_pc_switch)();
+void *(p2_pc_switch8s)();
+void *(*p2_humidity_sens1)();
+void *(*p2_humidity_sens2)();
+void *(*p2_lichtschalter)();
+void *(*p2_temp_sensor)();
+void **(*pointer2pointer)();
+
+
+//Funktion um UART-Puffer einzulesen
+void *uart_recieve()
+{
+    c = uart_getc();
+    if (c & UART_NO_DATA )
+        {
+            /*
+             * no data available from UART
+             */
+            return p2uart_recieve;
+        }
+    else
+        {
+            /*
+             * new data available from UART
+             * check for Frame or Overrun error
+             */
+            if ( c & UART_FRAME_ERROR )
+                {
+                    /* Framing Error detected, i.e no stop bit detected */
+                    uart_puts_P("UART Frame Error: ");
+                    return p2uart_recieve;
+
+                }
+            if ( c & UART_OVERRUN_ERROR )
+                {
+                    /*
+                     * Overrun, a character already present in the UART UDR register was
+                     * not read by the interrupt handler defore the next character arrived,
+                     * one or more received characters have been dropped
+                     */
+                    uart_puts_P("UART Overrun Error: ");
+                    return p2uart_recieve;
+                }
+            if ( c & UART_BUFFER_OVERFLOW )
+                {
+                    /*
+                     * We are not reading the receive buffer fast enough,
+                     * one or more received characters have been dropped
+                     */
+                    uart_puts_P("Buffer overflow error: ");
+                    return p2uart_recieve;
+                }
+            /* check if transcived is an command
+             */
+            uart_putc(c);
+            return p2uart_check_input(c);
+
+        }
+
+};
+
+
+
+
+void *port_read_input(int *portC, int *pCN, char *ausgabebeipositiv)  //*port[C=portnummer/buchstabe]  *p[C]=portbuchstabe[N]=pinnummer
+{
+
+//Pullupwiderstand setzen
+
+    SETREG(*portC, *pCN);
+
+// PIN-EIngang abfragen und ergebniss per uart ausgeben
+
+    if ( GETREG(*portC, *pCN) == 1 )
+        {
+            uart_puts_P(*ausgabebeipositiv);
+        };
+
+    return p2uart_recieve;
+
+};
+
+//Funktion um Pin fuer bestimmte zeit anzuschalten (+)
+void *toogle_pin(int *DDR, int *PORT,int *PIN, int *zeitinsec)
+{
+
+// register setzen um pin c0 auf output high zu setzen
+
+    SETREG(*PORT,*PIN);
+    SETREG(*DDR, *PIN);
+    //SETREG(PORT *PORT, P *PORT *PIN);
+    DEBUGOUTPUT("Port toogle");
+    #if DEBUG == 1
+    char buffer[10];
+    itoa(*PORT, buffer, 10);
+    DEBUGOUTPUT(buffer);
+    DEBUGOUTPUT(" ");
+    itoa(*PIN, buffer, 10);
+    DEBUGOUTPUT(buffer);
+    #endif // DEBUG
+
+
+// eine Sekunde warten
+    _delay_ms(1000 * *zeitinsec);
+
+// Register zurueck setzen
+
+    CLRREG(*DDR, *PIN);
+    CLRREG(*PORT, *PIN);
+
+    return p2uart_recieve;
+};
+
+
+
+void *check_sensor(int *adcnum)
+{
+
+    uint16_t g_OhmToTemp[] =
+    {
+        26640,
+        19330,
+        14210,
+        10520,
+        7885,
+        5944,
+        4530,
+        3474,
+        2693,
+        2097,
+        1648,
+        1301,
+        830,
+        669,
+        542,
+        442,
+        362,
+        298,
+        247,
+        205,
+        171,
+        144,
+        121,
+        102,
+        87,
+        74,
+        64,
+        55
+    };
+//Funktion um ADC auszulesen
+    uint16_t readADC(uint8_t channel)
+    {
+        uint8_t i;
+        uint16_t result = 0;
+
+        // Den ADC aktivieren und Teilungsfaktor auf 64 stellen
+        ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1);
+
+        // Kanal des Multiplexers waehlen
+        // Interne Referenzspannung verwenden (also 2,56 V)
+        ADMUX = channel  | (1<<REFS0);
+        // | (1<<REFS1)
+        // Den ADC initialisieren und einen sog. Dummyreadout machen
+        ADCSRA |= (1<<ADSC);
+        while(ADCSRA & (1<<ADSC));
+
+        // Jetzt 3x die analoge Spannung and Kanal channel auslesen
+        // und dann Durchschnittswert ausrechnen.
+        for(i=0; i<3; i++)
+            {
+                // Eine Wandlung
+                ADCSRA |= (1<<ADSC);
+                // Auf Ergebnis warten...
+                while(ADCSRA & (1<<ADSC));
+
+                result += ADCW;
+            }
+
+        // ADC wieder deaktivieren
+        ADCSRA &= ~(1<<ADEN);
+
+        result /= 3;
+
+        return result;
+    };
+
+
+
+
+    uint32_t result = readADC(*adcnum);
+    uint32_t skalierung = 200;
+    const uint32_t widerstand = 100*skalierung;
+    uint32_t volt = result;
+    uint32_t temp_widerstand = 1024*widerstand/volt - widerstand;
+    temp_widerstand /= skalierung/10;
+
+    int i ;
+    for ( i = 1; i < sizeof(g_OhmToTemp)/sizeof(uint16_t); i++)
+        {
+            if (g_OhmToTemp[i]>temp_widerstand) continue;
+            char buffer [15];
+            buffer[0] = '\n';
+            buffer[1] = '\r';
+            uint16_t val = (temp_widerstand-g_OhmToTemp[i]);
+            val*=5;
+            val/=(g_OhmToTemp[i-1]-g_OhmToTemp[i]);
+            itoa (i*5-40-val,buffer+2,10);
+            uart_puts(buffer);
+            break;
+        }
+    return p2uart_recieve;
+};
+
+// Zaehler des Buffers
+int buffercnt = 0;
+// BUffer fuer Char;s von UART
+char uart_buffer[30];
+// uart eingabeueberpruefung
+void *uart_check_input(char *b)
+{
+
+    struct cmd_table
+    {
+
+        void *(*p2comando);
+        char *comando;
+    };
+
+    void *(*p2_pc_switch);
+    void *(*p2_pc_switch8s);
+
+    struct cmd_table comando_table [] =
+    {
+        { p2_pc_pwled, "pc_pwled" },
+        { p2_pc_hdled, "pc_hdled" },
+        { p2_pc_switch, "pc_switch" },
+        { p2_pc_switch8s, "pc_switch8s" },
+        { p2_temp_sensor, "temp_sensor" },
+        { p2_humidity_sens1, "humidity_sens1"  },
+        { p2_humidity_sens2, "humidity_sens2"  },
+        { p2_lichtschalter, "lichtschalter"    }
+
+    };
+
+
+
+
+    if ( *b == '\n')
+        {
+            int i;
+            for ( i=0; i < 8 , uart_buffer != comando_table[i].comando; i++ );
+            if ( comando_table[i].comando == uart_buffer )
+                {
+                    return comando_table[i].p2comando;
+                }
+            if ( i=7, i=0);
+        }
+    else
+        {
+            if ( uart_buffer[buffercnt] == '\0')
+                {
+                    buffercnt = 0 ;
+                }
+            uart_buffer[buffercnt] = *b;
+            buffercnt++;
+            return p2uart_recieve;
+        }
+};
+
+//Funktion um Pointer zu setzen
+void setpointers()
+{
+    p2uart_recieve = uart_recieve;
+    p2uart_check_input = uart_check_input;
+    pointer2pointer = uart_recieve;
+    p2_uart_puts_P = uart_puts_p;
+    p2_pc_pwled = port_read_input(PORTC, PC0, "pwled1");
+    p2_pc_hdled = port_read_input(PORTC, PC1, "hdled1");
+    p2_pc_mbled = port_read_input(PORTC, PC2, "mbled");
+    p2_pc_switch = toogle_pin(DDRC, PORTC, PC3, 1)
+    p2_pc_switch8s = toogle_pin(DDRC, PORTC, PC3, 8);
+    p2_humidity_sens1;
+    p2_humidity_sens2;
+    p2_lichtschalter;
+    p2_temp_sensor = check_sensor(0);
+};
+
+
+
+int main(void)
+{
+
+
+
+
+    /*
+    * Intialize UART library, pass baudrate and AVR cpu clock
+    * with macro
+    * UART_BAUD_SELECT() (normal speed mode)
+    * of
+    * UART_BAUD_SELECT_DOUBLE_SPEED() (double speed mode)
+    */
+
+    uart_init( UART_BAUD_SELECT(UART_BAUD_RATE,F_CPU) );
+
+    /*
+    * now enable interrupt, since UART library is interrupt controlled
+    */
+
+
+
+    DEBUGOUTPUT("test");
+
+    sei();
+    uart_puts_P("uart initiert ");
+    /*
+    * transmit string to uart
+    * the string is buffered by the uart library is a circular buffer
+    * and one character at a time is transmitted to the UART using interrupts.
+    * uart_puts() blocks if it can not write the whole string to the circular
+    * buffer
+    */
+
+    setpointers();  //pointer fuer statemachine setzen
+    uart_puts_P("pointer gesetzt ");
+
+
+    void stateMachine ()
+    {
+        pointer2pointer = pointer2pointer();
+
+    };
+
+    uart_puts_P("state machine definiert ");
+
+
+    while(1)                    //statemachine
+        {
+            stateMachine();
+
+        };
+
+    return 0;
+}
+

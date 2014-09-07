@@ -1,0 +1,53 @@
+# depslib dependency file v1.0
+1388394467 source:/mnt/home/julius/Programmieren/zimmer_steuerung/main.c
+	<avr/io.h>
+	<avr/uart.c>
+	<avr/uart.h>
+	<avr/macros.h>
+	<stdlib.h>
+	<stdint.h>
+	<avr/interrupt.h>
+	<avr/pgmspace.h>
+	<util/delay.h>
+	<inttypes.h>
+
+1409512875 source:/home/julius/Programmieren/zimmer_steuerung/1wire.c
+	<avr/pgmspace.h>
+	<util/delay.h>
+	<inttypes.h>
+	<avr/io.h>
+	"macros.h"
+	<avr/interrupt.h>
+	<stdlib.h>
+	<stdbool.h>
+
+1409464977 /home/julius/Programmieren/zimmer_steuerung/macros.h
+
+1409512875 /home/julius/Programmieren/zimmer_steuerung/1wire.h
+
+1409463656 /home/julius/Programmieren/zimmer_steuerung/1wire.c
+	<avr/pgmspace.h>
+	<util/delay.h>
+	<inttypes.h>
+	<avr/io.h>
+	"macros.h"
+	<avr/interrupt.h>
+	<stdlib.h>
+	<stdbool.h>
+
+1410101889 source:/home/julius/Programmieren/zimmer_steuerung/main.c
+	<avr/io.h>
+	<avr/uart.c>
+	<avr/uart.h>
+	<avr/macros.h>
+	<stdlib.h>
+	<stdint.h>
+	<avr/interrupt.h>
+	<avr/pgmspace.h>
+	<util/delay.h>
+	<inttypes.h>
+	"1wire.h"
+	"macros.h"
+
+1409512875 source:/home/julius/Programmieren/zimmer_steuerung/1wire.h
+
